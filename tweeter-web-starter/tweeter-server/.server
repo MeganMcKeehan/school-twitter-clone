@@ -1,0 +1,19 @@
+BUCKET='aws-s3-bucket-cs340'
+LAMBDA_ROLE='arn:aws:iam::337909758344:role/aws-tweeter'
+EDIT_LAMBDALIST='
+tweeterGetFollowees | lambda/follow/GetFolloweesLambda.handler
+tweeterGetFollowers | lambda/follow/GetFollowersLambda.handler
+tweeterLoadMoreFeedItems | lambda/status/LoadMoreFeedItemsLambda.handler
+tweeterLoadMoreStoryItems | lambda/status/LoadMoreStoryItemsLambda.handler
+tweeterPostStatus | lambda/status/PostStatusLambda.handler
+tweeterFollow | lambda/user/FollowLambda.handler
+tweeterGetFolloweeCount | lambda/user/GetFolloweeCountLambda.handler
+tweeterGetFollowerCount | lambda/user/GetFollowerCountLambda.handler
+tweeterGetIsFollower | lambda/user/GetIsFollowerLambda.handler
+tweeterGetUser | lambda/user/GetUserLambda.handler
+tweeterLogin | lambda/user/LoginLambda.handler
+tweeterLogout | lambda/user/LogoutLambda.handler
+tweeterRegister | lambda/user/RegisterLambda.handler
+tweeterUnfollow | lambda/user/UnfollowLambda.handler
+'
+LAMBDALAYER_ARN='arn:aws:lambda:us-east-1:337909758344:layer:tweeter-layer:4'

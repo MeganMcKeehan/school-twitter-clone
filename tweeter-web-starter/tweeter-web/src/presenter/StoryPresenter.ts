@@ -1,0 +1,25 @@
+import { AuthToken, Status } from "tweeter-shared";
+import { PAGE_SIZE, PagedItemView } from "./PagedItemPresenter";
+import { StatusItemPresenter } from "./StatusItemPresenter";
+
+export class StoryPresenter extends StatusItemPresenter {
+  public constructor(view: PagedItemView<Status>) {
+    super(view);
+  }
+
+  protected getMoreItems(
+    authToken: AuthToken,
+    userAlias: string
+  ): Promise<[Status[], boolean]> {
+    return this.service.loadMoreStoryItems(
+      authToken,
+      userAlias,
+      PAGE_SIZE,
+      this.lastItem
+    );
+  }
+
+  protected getItemDescription(): string {
+    return "load stories";
+  }
+}
