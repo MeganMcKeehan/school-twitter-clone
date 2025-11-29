@@ -1,11 +1,4 @@
-import {
-  AuthToken,
-  Status,
-  FakeData,
-  User,
-  UserDto,
-  StatusDto,
-} from "tweeter-shared";
+import { Status, FakeData, UserDto, StatusDto } from "tweeter-shared";
 import { Service } from "./Service";
 
 export class StatusService extends Service {

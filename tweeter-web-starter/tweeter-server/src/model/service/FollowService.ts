@@ -1,11 +1,4 @@
-import {
-  AuthToken,
-  User,
-  FakeData,
-  Status,
-  UserDto,
-  StatusDto,
-} from "tweeter-shared";
+import { User, FakeData, UserDto, StatusDto } from "tweeter-shared";
 import { Service } from "./Service";
 
 export class FollowService extends Service {
@@ -16,6 +9,7 @@ export class FollowService extends Service {
     lastItem: StatusDto | UserDto | null
   ): Promise<[UserDto[], boolean]> {
     // TODO: Replace with the result of calling server
+
     return this.getFakeData(lastItem, pageSize, userAlias);
   }
 
