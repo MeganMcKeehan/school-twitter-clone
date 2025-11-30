@@ -6,7 +6,7 @@ export class StatusService extends Service {
     authToken: string,
     userAlias: string,
     pageSize: number,
-    lastItem: StatusDto | UserDto | null
+    lastItem: StatusDto | null
   ): Promise<[StatusDto[], boolean]> {
     // TODO: Replace with the result of calling server
     return this.getFakeData(lastItem as Status | null, pageSize);
@@ -16,7 +16,7 @@ export class StatusService extends Service {
     authToken: string,
     userAlias: string,
     pageSize: number,
-    lastItem: StatusDto | UserDto | null
+    lastItem: StatusDto | null
   ): Promise<[StatusDto[], boolean]> {
     // TODO: Replace with the result of calling server
     return this.getFakeData(lastItem as Status | null, pageSize);
@@ -33,7 +33,7 @@ export class StatusService extends Service {
   }
 
   private async getFakeData(
-    lastItem: StatusDto | UserDto | null,
+    lastItem: StatusDto | null,
     pageSize: number
   ): Promise<[StatusDto[], boolean]> {
     const [items, hasMore] = FakeData.instance.getPageOfStatuses(

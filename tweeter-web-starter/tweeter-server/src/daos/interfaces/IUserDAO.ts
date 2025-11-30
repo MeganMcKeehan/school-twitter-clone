@@ -1,11 +1,16 @@
-import { User } from "tweeter-shared";
+import { UserDto } from "tweeter-shared";
 
 export interface IUserDAO {
-  getUserInformation(alias: string): User;
+  getUserInformation(alias: string): UserDto;
 
   updateFollowerCount(): void;
 
   updateFolloweeCount(): void;
 
-  addUser(): void;
+  addUser(
+    firstName: string,
+    lastName: string,
+    alias: string,
+    password: string
+  ): UserDto;
 }

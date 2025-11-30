@@ -14,9 +14,9 @@ export class FollowDAO {
   constructor() {
     this.client = new DynamoDBClient({});
   }
-  public async getFollowers(): Promise<
-    Record<string, AttributeValue> | undefined
-  > {
+  public async getFollowers(
+    alias: string
+  ): Promise<Record<string, AttributeValue> | undefined> {
     const params: GetCommandInput = {
       TableName: "status",
       Key: { alias },
@@ -29,9 +29,9 @@ export class FollowDAO {
       console.error("Error:", error);
     }
   }
-  public async getFollowees(): Promise<
-    Record<string, AttributeValue> | undefined
-  > {
+  public async getFollowees(
+    alias: string
+  ): Promise<Record<string, AttributeValue> | undefined> {
     const params: GetCommandInput = {
       TableName: "status",
       Key: { alias },

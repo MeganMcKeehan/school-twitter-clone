@@ -3,6 +3,7 @@ import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
+  PutItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { GetCommandInput } from "@aws-sdk/lib-dynamodb";
 import { Status, StatusDto } from "tweeter-shared";
@@ -15,11 +16,11 @@ export class StatusDAO {
   }
 
   public async addStatus(newStatus: StatusDto): Promise<void> {
-    const params = {
+    const params: PutItemInput = {
       TableName: "status",
       Item: {
         post: { S: newStatus.post },
-        timestamp: { N: newStatus.timestamp },
+        timestamp: { N: newStatus.timestamp.toString() },
         user: { S: newStatus.user.alias },
       },
     };
@@ -32,7 +33,7 @@ export class StatusDAO {
   }
 
   public async getStatus(
-    alias: String
+    alias: string
   ): Promise<Record<string, AttributeValue> | undefined> {
     const params: GetCommandInput = {
       TableName: "status",

@@ -1,9 +1,9 @@
-import { User } from "tweeter-shared";
+import { UserDto } from "tweeter-shared";
 
-export interface FollowDAO {
-  getFollowers(): User[];
-  getFollowees(): User[];
-  addFollow(): void;
-  updateFollow(): void;
-  deleteFollow(): void;
+export interface IFollowDAO {
+  getFollowers(userAlias: string): UserDto[];
+  getFollowees(userAlias: string): UserDto[];
+  addFollow(follower: string, followee: string): void;
+  deleteFollow(follower: string, followee: string): void;
+  isFollower(user: string, selectedUser: string): boolean;
 }

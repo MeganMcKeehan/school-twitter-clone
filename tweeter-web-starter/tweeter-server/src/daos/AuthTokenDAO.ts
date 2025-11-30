@@ -9,9 +9,9 @@ export class AuthtokenDAO {
 
   public generateAuthToken(alias: string) {}
 
-  public isValidAuthToken(alias: string, authToken: AuthToken) {}
+  public isValidAuthToken(authToken: AuthToken | string) {}
 
-  public deleteAuthToken(authToken: AuthToken) {}
+  public deleteAuthToken(authToken: AuthToken | string) {}
 
   public removeExpiredTokens() {}
 }
