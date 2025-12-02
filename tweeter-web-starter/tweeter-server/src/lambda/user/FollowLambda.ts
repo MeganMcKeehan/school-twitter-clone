@@ -1,7 +1,6 @@
 import {
   FollowCountResponse,
-  IsFollowerRequest,
-  TweeterResponse,
+  IsFollowerRequest,\
 } from "tweeter-shared";
 import { UserService } from "../../model/service/UserService";
 

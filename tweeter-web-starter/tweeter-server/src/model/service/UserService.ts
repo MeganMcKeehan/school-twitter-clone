@@ -1,10 +1,11 @@
 import { Buffer } from "buffer";
-import { UserDto } from "tweeter-shared";
+import { User, UserDto } from "tweeter-shared";
 import { Service } from "./Service";
 import { IAuthtokenDAO } from "../../daos/interfaces/IAuthTokenDAO";
 import { IUserDAO } from "../../daos/interfaces/IUserDAO";
 import { IImageDAO } from "../../daos/interfaces/IImageDAO";
 import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
+import { DAOFactory } from "../factories/DaoFactory";
 
 export class UserService extends Service {
   private _userDAO: IUserDAO;
@@ -12,17 +13,12 @@ export class UserService extends Service {
   private _imageDao: IImageDAO;
   private _followDAO: IFollowDAO;
 
-  constructor(
-    userDAO: IUserDAO,
-    authtokenDAO: IAuthtokenDAO,
-    imageDAO: IImageDAO,
-    followDAO: IFollowDAO,
-  ) {
+  constructor(daoFactory: DAOFactory) {
     super();
-    this._userDAO = userDAO;
-    this._authTokenDAO = authtokenDAO;
-    this._imageDao = imageDAO;
-    this._followDAO = followDAO;
+    this._userDAO = daoFactory.getUserDAO();
+    this._authTokenDAO = daoFactory.getAuthTokenDAO();
+    this._imageDao = daoFactory.getImageDAO();
+    this._followDAO = daoFactory.getFollowDAO();
   }
 
   public async login(
@@ -31,13 +27,15 @@ export class UserService extends Service {
   ): Promise<[UserDto, string]> {
     try {
       const user = await this._userDAO.getUserInformation(alias);
-      if (password === user.password){
+      if (password === user.password) {
         const authToken = await this._authTokenDAO.generateAuthToken(alias);
-        return [user,authToken.token]
+        return [user, authToken];
       }
 
       throw new Error("Invalid alias or password");
-    } 
+    } catch (error) {
+      throw error;
+    }
   }
 
   public async register(
@@ -48,31 +46,30 @@ export class UserService extends Service {
     userImageBytes: string,
     imageFileExtension: string
   ): Promise<[UserDto, string]> {
-    const aliasTaken = this._userDAO.getUserInformation(alias);
-    if (aliasTaken){
+    const aliasTaken = await this._userDAO.getUserInformation(alias);
+    if (aliasTaken.alias == alias) {
       throw new Error("alias taken");
     }
-
-    const newUser =  this._userDAO.addUser(firstName, lastName, alias, password);
 
     const imageStringBase64: string =
       Buffer.from(userImageBytes).toString("base64");
 
-    this._imageDao.putImage(alias+imageFileExtension, imageStringBase64);
+    const imageUrl = await this._imageDao.putImage(
+      alias + imageFileExtension,
+      imageStringBase64
+    );
 
-    
-    if (newUser === null) {
-      throw new Error("Invalid registration");
-    }
+    this._userDAO.addUser(firstName, lastName, alias, imageUrl, password);
 
-    const token = this._authTokenDAO.generateAuthToken(alias)
+    const token = await this._authTokenDAO.generateAuthToken(alias);
 
-    return [newUser, token.token];
+    const newUser = new User(firstName, lastName, alias, imageUrl);
+
+    return [newUser.dto, token];
   }
 
   public async logout(authToken: string): Promise<void> {
-    // Pause so we can see the logging out message. Delete when the call to the server is implemented.
-    await new Promise((res) => setTimeout(res, 1000));
+    await this._authTokenDAO.deleteAuthToken(authToken);
   }
 
   public async getUser(
@@ -88,7 +85,7 @@ export class UserService extends Service {
     user: UserDto
   ): Promise<number> {
     await this._authTokenDAO.isValidAuthToken(authToken);
-    return await this._followDAO.getFollowers(user.alias).length;
+    return await this._followDAO.getFollowerCount(user.alias);
   }
 
   public async getFolloweeCount(
@@ -96,7 +93,7 @@ export class UserService extends Service {
     user: UserDto
   ): Promise<number> {
     await this._authTokenDAO.isValidAuthToken(authToken);
-    return await this._followDAO.getFollowees(user.alias).length;
+    return await this._followDAO.getFolloweeCount(user.alias);
   }
 
   public async getIsFollowerStatus(
@@ -113,7 +110,7 @@ export class UserService extends Service {
     userToFollow: UserDto,
     user: UserDto
   ): Promise<[followerCount: number, followeeCount: number]> {
-    this._followDAO.addFollow(user.alias,userToFollow.alias)
+    this._followDAO.addFollow(user.alias, userToFollow.alias);
 
     const followerCount = await this.getFollowerCount(authToken, userToFollow);
     const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
@@ -126,7 +123,7 @@ export class UserService extends Service {
     userToUnfollow: UserDto,
     user: UserDto
   ): Promise<[followerCount: number, followeeCount: number]> {
-    this._followDAO.deleteFollow(user.alias,userToUnfollow.alias)
+    this._followDAO.deleteFollow(user.alias, userToUnfollow.alias);
 
     const followerCount = await this.getFollowerCount(
       authToken,

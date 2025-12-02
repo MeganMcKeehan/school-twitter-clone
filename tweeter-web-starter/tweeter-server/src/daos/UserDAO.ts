@@ -5,17 +5,17 @@ import {
   PutItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { GetCommandInput } from "@aws-sdk/lib-dynamodb";
+import { IUserDAO } from "./interfaces/IUserDAO";
+import { User, UserDto } from "tweeter-shared";
 
-export class UserDAO {
+export class UserDAO implements IUserDAO {
   private client: DynamoDBClient;
 
   constructor() {
     this.client = new DynamoDBClient({});
   }
 
-  public async getUserInformation(
-    alias: string
-  ): Promise<Record<string, AttributeValue> | undefined> {
+  public async getUserInformation(alias: string): Promise<UserDto> {
     const params: GetCommandInput = {
       TableName: "users",
       Key: { alias },
@@ -23,9 +23,23 @@ export class UserDAO {
     try {
       const data = await this.client.send(new GetItemCommand(params));
       console.log("result : " + JSON.stringify(data));
-      return data.Item;
+      if (
+        data.Item &&
+        data.Item["firstName"].S &&
+        data.Item["lastName"].S &&
+        data.Item["imageUrl"].S
+      ) {
+        return new User(
+          data.Item["firstName"].S,
+          data.Item["lastName"].S,
+          alias,
+          data.Item["imageUrl"].S
+        );
+      }
+      return new User("", "", "", "");
     } catch (error) {
       console.error("Error:", error);
+      throw error;
     }
   }
 
@@ -33,6 +47,7 @@ export class UserDAO {
     firstName: string,
     lastName: string,
     alias: string,
+    imageUrl: string,
     password: string
   ) {
     const params = {
@@ -41,12 +56,12 @@ export class UserDAO {
         firstName: { S: firstName },
         lastName: { S: lastName },
         alias: { S: alias },
+        imageUrl: { S: imageUrl },
         password: { S: password },
       },
     };
     try {
-      const data = await this.client.send(new PutItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
+      await this.client.send(new PutItemCommand(params));
     } catch (error) {
       console.error("Error:", error);
     }

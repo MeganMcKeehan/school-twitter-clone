@@ -1,11 +1,11 @@
 import { AuthToken } from "tweeter-shared";
 
 export interface IAuthtokenDAO {
-  generateAuthToken(alias: string): AuthToken;
+  generateAuthToken(alias: string): Promise<string>;
 
-  isValidAuthToken(authToken: AuthToken | string): boolean;
+  isValidAuthToken(authToken: AuthToken | string): Promise<boolean>;
 
-  deleteAuthToken(authToken: AuthToken | string): void;
+  deleteAuthToken(authToken: AuthToken | string): Promise<void>;
 
-  removeExpiredTokens(): void;
+  removeExpiredTokens(): Promise<void>;
 }

@@ -1,15 +1,17 @@
 import {
-  AttributeValue,
   DynamoDBClient,
-  GetItemCommand,
   PutItemCommand,
   PutItemInput,
 } from "@aws-sdk/client-dynamodb";
-import { GetCommandInput } from "@aws-sdk/lib-dynamodb";
-import { Status, StatusDto } from "tweeter-shared";
+import { QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
+import { DataPage, Status, StatusDto } from "tweeter-shared";
+import { IStatusDAO } from "./interfaces/IStatusDAO";
 
-export class StatusDAO {
+export class StatusDAO implements IStatusDAO {
   private client: DynamoDBClient;
+  private TABLE_NAME = "status-table";
+  private USER_ALIAS: string = "user-alias";
+  private TIMESTAMP: string = "timestamp";
 
   constructor() {
     this.client = new DynamoDBClient({});
@@ -21,7 +23,7 @@ export class StatusDAO {
       Item: {
         post: { S: newStatus.post },
         timestamp: { N: newStatus.timestamp.toString() },
-        user: { S: newStatus.user.alias },
+        "user-alias": { S: newStatus.user.alias },
       },
     };
     try {
@@ -32,19 +34,68 @@ export class StatusDAO {
     }
   }
 
-  public async getStatus(
-    alias: string
-  ): Promise<Record<string, AttributeValue> | undefined> {
-    const params: GetCommandInput = {
-      TableName: "status",
-      Key: { alias },
+  public async getStory(
+    alias: string,
+    lastItem: StatusDto | null = null,
+    limit: number = 10
+  ): Promise<DataPage<StatusDto>> {
+    const params = {
+      KeyConditionExpression: this.USER_ALIAS + " = :alias",
+      ExpressionAttributeValues: {
+        ":alias": alias,
+      },
+      TableName: this.TABLE_NAME,
+      Limit: limit,
+      ExclusiveStartKey:
+        lastItem === null
+          ? undefined
+          : {
+              ["post"]: lastItem.post,
+              [this.USER_ALIAS]: lastItem.user,
+              [this.TIMESTAMP]: lastItem.timestamp,
+            },
     };
-    try {
-      const data = await this.client.send(new GetItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
-      return data.Item;
-    } catch (error) {
-      console.error("Error:", error);
-    }
+
+    const items: StatusDto[] = [];
+    const data = await this.client.send(new QueryCommand(params));
+    const hasMorePages = data.LastEvaluatedKey !== undefined;
+    data.Items?.forEach((item) =>
+      items.push(
+        new Status(item["post"], item[this.USER_ALIAS], item[this.TIMESTAMP])
+          .dto
+      )
+    );
+
+    return new DataPage<StatusDto>(items, hasMorePages);
+  }
+
+  public async getFeed(
+    lastItem: StatusDto | null = null,
+    limit: number = 10
+  ): Promise<DataPage<StatusDto>> {
+    const params: QueryCommandInput = {
+      TableName: this.TABLE_NAME,
+      Limit: limit,
+      ExclusiveStartKey:
+        lastItem === null
+          ? undefined
+          : {
+              ["post"]: lastItem.post,
+              [this.USER_ALIAS]: lastItem.user,
+              [this.TIMESTAMP]: lastItem.timestamp,
+            },
+    };
+
+    const items: StatusDto[] = [];
+    const data = await this.client.send(new QueryCommand(params));
+    const hasMorePages = data.LastEvaluatedKey !== undefined;
+    data.Items?.forEach((item) =>
+      items.push(
+        new Status(item["post"], item[this.USER_ALIAS], item[this.TIMESTAMP])
+          .dto
+      )
+    );
+
+    return new DataPage<StatusDto>(items, hasMorePages);
   }
 }

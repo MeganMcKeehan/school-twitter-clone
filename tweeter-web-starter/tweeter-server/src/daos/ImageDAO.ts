@@ -3,9 +3,13 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { IImageDAO } from "./interfaces/IImageDAO";
 
-export class ImageDAO {
-  async putImage(
+const BUCKET = "tweeter-image-storage-megan-mckeehan";
+const REGION = "us-east-1";
+
+export class ImageDAO implements IImageDAO {
+  public async putImage(
     fileName: string,
     imageStringBase64Encoded: string
   ): Promise<string> {

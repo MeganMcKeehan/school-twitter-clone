@@ -1,23 +1,18 @@
-import { User, FakeData, UserDto, StatusDto } from "tweeter-shared";
+import { User, FakeData, UserDto, StatusDto, DataPage } from "tweeter-shared";
 import { Service } from "./Service";
 import type { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { IUserDAO } from "../../daos/interfaces/IUserDAO";
 import { IAuthtokenDAO } from "../../daos/interfaces/IAuthTokenDAO";
+import { DAOFactory } from "../factories/DaoFactory";
 
 export class FollowService extends Service {
   private _followDAO: IFollowDAO;
-  private _userDAO: IUserDAO;
   private _authTokenDAO: IAuthtokenDAO;
 
-  constructor(
-    followDAO: IFollowDAO,
-    userDAO: IUserDAO,
-    authtokenDAO: IAuthtokenDAO
-  ) {
+  constructor(daoFactory: DAOFactory) {
     super();
-    this._followDAO = followDAO;
-    this._userDAO = userDAO;
-    this._authTokenDAO = authtokenDAO;
+    this._followDAO = daoFactory.getFollowDAO();
+    this._authTokenDAO = daoFactory.getAuthTokenDAO();
   }
 
   public async loadMoreFollowers(
@@ -25,26 +20,12 @@ export class FollowService extends Service {
     userAlias: string,
     pageSize: number,
     lastItem: UserDto | null
-  ): Promise<[UserDto[], boolean]> {
+  ): Promise<DataPage<string>> {
     try {
       await this._authTokenDAO.isValidAuthToken(token);
-      const allFollowers = await this._followDAO.getFollowers(userAlias);
-      const indexToStartSearchAt = lastItem
-        ? allFollowers.indexOf(lastItem)
-        : 0;
-
-      const nextBatch: UserDto[] = [];
-      for (
-        let i = indexToStartSearchAt;
-        i < indexToStartSearchAt + pageSize;
-        i++
-      ) {
-        nextBatch.push(allFollowers[i]);
-      }
-
-      return [nextBatch, true];
+      return this._followDAO.getFollowers(userAlias, lastItem?.alias, pageSize);
     } catch (error) {
-      return [[], false];
+      return new DataPage([], false);
     }
   }
 
@@ -53,26 +34,12 @@ export class FollowService extends Service {
     userAlias: string,
     pageSize: number,
     lastItem: UserDto | null
-  ): Promise<[UserDto[], boolean]> {
+  ): Promise<DataPage<string>> {
     try {
-      this._authTokenDAO.isValidAuthToken(token);
-      const allFollowees = this._followDAO.getFollowees(userAlias);
-      const indexToStartSearchAt = lastItem
-        ? allFollowees.indexOf(lastItem)
-        : 0;
-
-      const nextBatch: UserDto[] = [];
-      for (
-        let i = indexToStartSearchAt;
-        i < indexToStartSearchAt + pageSize;
-        i++
-      ) {
-        nextBatch.push(allFollowees[i]);
-      }
-
-      return [nextBatch, true];
+      await this._authTokenDAO.isValidAuthToken(token);
+      return this._followDAO.getFollowees(userAlias, lastItem?.alias, pageSize);
     } catch (error) {
-      return [[], false];
+      return new DataPage([], false);
     }
   }
 

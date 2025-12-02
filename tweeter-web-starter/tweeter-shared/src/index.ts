@@ -31,3 +31,5 @@ export type { FollowCountResponse } from "./model/net/response/FollowCountRespon
 export type { GetUserResponse } from "./model/net/response/GetUserResponse";
 export type { IsFollowerResponse } from "./model/net/response/IsFollowerResponse";
 export type { LoginResponse } from "./model/net/response/LoginResponse";
+
+export { DataPage } from "./model/dataPage";
