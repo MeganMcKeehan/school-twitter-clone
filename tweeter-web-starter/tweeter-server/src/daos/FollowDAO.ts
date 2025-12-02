@@ -25,7 +25,7 @@ export class FollowDAO implements IFollowDAO {
     alias: string,
     lastItem: string | undefined = undefined,
     limit: number = 10
-  ): Promise<DataPage<string>> {
+  ): Promise<[string[], boolean]> {
     const params = {
       KeyConditionExpression: this.PRIMARY_KEY + " = :alias",
       ExpressionAttributeValues: {
@@ -46,13 +46,13 @@ export class FollowDAO implements IFollowDAO {
     const hasMorePages = data.LastEvaluatedKey !== undefined;
     data.Items?.forEach((item) => items.push(item["alias"]));
 
-    return new DataPage<string>(items, hasMorePages);
+    return [items, hasMorePages];
   }
   public async getFollowees(
     alias: string,
     lastItem: string | undefined = undefined,
     limit: number = 10
-  ): Promise<DataPage<string>> {
+  ): Promise<[string[], boolean]> {
     const params = {
       KeyConditionExpression: this.SECONDARY_KEY + " = :alias",
       ExpressionAttributeValues: {
@@ -74,7 +74,7 @@ export class FollowDAO implements IFollowDAO {
     const hasMorePages = data.LastEvaluatedKey !== undefined;
     data.Items?.forEach((item) => items.push(item["alias"]));
 
-    return new DataPage<string>(items, hasMorePages);
+    return [items, hasMorePages];
   }
 
   async addFollow(follower: string, followee: string): Promise<void> {
