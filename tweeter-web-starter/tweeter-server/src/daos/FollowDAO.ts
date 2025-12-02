@@ -87,7 +87,7 @@ export class FollowDAO implements IFollowDAO {
     };
     try {
       const data = await this.client.send(new PutItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
+      console.log("result : " + data);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -103,7 +103,7 @@ export class FollowDAO implements IFollowDAO {
     };
     try {
       const data = await this.client.send(new DeleteItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
+      console.log("result : " + data);
     } catch (error) {
       console.error("Error:", error);
     }

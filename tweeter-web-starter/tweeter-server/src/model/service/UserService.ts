@@ -6,12 +6,14 @@ import { IUserDAO } from "../../daos/interfaces/IUserDAO";
 import { IImageDAO } from "../../daos/interfaces/IImageDAO";
 import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { DAOFactory } from "../factories/DaoFactory";
+import { IPasswordDAO } from "../../daos/interfaces/IPasswordDAO";
 
 export class UserService extends Service {
   private _userDAO: IUserDAO;
   private _authTokenDAO: IAuthtokenDAO;
   private _imageDao: IImageDAO;
   private _followDAO: IFollowDAO;
+  private _passwordDAO: IPasswordDAO;
 
   constructor(daoFactory: DAOFactory) {
     super();
@@ -19,6 +21,7 @@ export class UserService extends Service {
     this._authTokenDAO = daoFactory.getAuthTokenDAO();
     this._imageDao = daoFactory.getImageDAO();
     this._followDAO = daoFactory.getFollowDAO();
+    this._passwordDAO = daoFactory.getPasswordDAO();
   }
 
   public async login(
@@ -26,8 +29,9 @@ export class UserService extends Service {
     password: string
   ): Promise<[UserDto, string]> {
     try {
-      const user = await this._userDAO.getUserInformation(alias);
-      if (password === user.password) {
+      const foundPassword = await this._passwordDAO.getPassword(alias);
+      if (password === foundPassword) {
+        const user = await this._userDAO.getUserInformation(alias);
         const authToken = await this._authTokenDAO.generateAuthToken(alias);
         return [user, authToken];
       }
@@ -47,7 +51,7 @@ export class UserService extends Service {
     imageFileExtension: string
   ): Promise<[UserDto, string]> {
     const aliasTaken = await this._userDAO.getUserInformation(alias);
-    if (aliasTaken.alias == alias) {
+    if (aliasTaken?.alias == alias) {
       throw new Error("alias taken");
     }
 
@@ -55,11 +59,12 @@ export class UserService extends Service {
       Buffer.from(userImageBytes).toString("base64");
 
     const imageUrl = await this._imageDao.putImage(
-      alias + imageFileExtension,
+      alias + "." + imageFileExtension,
       imageStringBase64
     );
 
-    this._userDAO.addUser(firstName, lastName, alias, imageUrl, password);
+    this._userDAO.addUser(firstName, lastName, alias, imageUrl);
+    this._passwordDAO.addPassword(alias, password);
 
     const token = await this._authTokenDAO.generateAuthToken(alias);
 

@@ -4,8 +4,10 @@ import { ImageDAO } from "../../daos/ImageDAO";
 import { IAuthtokenDAO } from "../../daos/interfaces/IAuthTokenDAO";
 import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { IImageDAO } from "../../daos/interfaces/IImageDAO";
+import { IPasswordDAO } from "../../daos/interfaces/IPasswordDAO";
 import { IStatusDAO } from "../../daos/interfaces/IStatusDAO";
 import { IUserDAO } from "../../daos/interfaces/IUserDAO";
+import { PasswordDAO } from "../../daos/PasswordDAO";
 import { StatusDAO } from "../../daos/StatusDAO";
 import { UserDAO } from "../../daos/UserDAO";
 import { DAOFactory } from "./DaoFactory";
@@ -16,6 +18,7 @@ export class DynamoDAOFactory extends DAOFactory {
   private _authTokenDAO: IAuthtokenDAO | undefined;
   private _imageDAO: IImageDAO | undefined;
   private _statusDAO: IStatusDAO | undefined;
+  private _passwordDAO: IPasswordDAO | undefined;
 
   public getUserDAO(): IUserDAO {
     if (!this._userDAO) {
@@ -50,5 +53,12 @@ export class DynamoDAOFactory extends DAOFactory {
       this._statusDAO = new StatusDAO();
     }
     return this._statusDAO;
+  }
+
+  public getPasswordDAO(): IPasswordDAO {
+    if (!this._passwordDAO) {
+      this._passwordDAO = new PasswordDAO();
+    }
+    return this._passwordDAO;
   }
 }

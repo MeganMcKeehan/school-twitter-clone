@@ -7,7 +7,6 @@ export interface IUserDAO {
     firstName: string,
     lastName: string,
     alias: string,
-    imageUrl: string,
-    password: string
+    imageUrl: string
   ): Promise<void>;
 }

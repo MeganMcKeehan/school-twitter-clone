@@ -10,7 +10,7 @@ import { IStatusDAO } from "./interfaces/IStatusDAO";
 export class StatusDAO implements IStatusDAO {
   private client: DynamoDBClient;
   private TABLE_NAME = "status-table";
-  private USER_ALIAS: string = "user-alias";
+  private USER_ALIAS: string = "user_alias";
   private TIMESTAMP: string = "timestamp";
 
   constructor() {
@@ -19,16 +19,16 @@ export class StatusDAO implements IStatusDAO {
 
   public async addStatus(newStatus: StatusDto): Promise<void> {
     const params: PutItemInput = {
-      TableName: "status",
+      TableName: this.TABLE_NAME,
       Item: {
         post: { S: newStatus.post },
-        timestamp: { N: newStatus.timestamp.toString() },
-        "user-alias": { S: newStatus.user.alias },
+        timestamp: { S: newStatus?.timestamp.toString() },
+        user_alias: { S: newStatus?.user?.alias },
       },
     };
     try {
       const data = await this.client.send(new PutItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
+      console.log("result : ", data);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -52,7 +52,7 @@ export class StatusDAO implements IStatusDAO {
           : {
               ["post"]: lastItem.post,
               [this.USER_ALIAS]: lastItem.user,
-              [this.TIMESTAMP]: lastItem.timestamp,
+              [this.TIMESTAMP]: lastItem.timestamp.toString(),
             },
     };
 
@@ -82,7 +82,7 @@ export class StatusDAO implements IStatusDAO {
           : {
               ["post"]: lastItem.post,
               [this.USER_ALIAS]: lastItem.user,
-              [this.TIMESTAMP]: lastItem.timestamp,
+              [this.TIMESTAMP]: lastItem.timestamp.toString(),
             },
     };
 

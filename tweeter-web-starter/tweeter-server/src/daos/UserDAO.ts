@@ -1,5 +1,4 @@
 import {
-  AttributeValue,
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
@@ -11,18 +10,20 @@ import { User, UserDto } from "tweeter-shared";
 export class UserDAO implements IUserDAO {
   private client: DynamoDBClient;
 
+  private TABLE_NAME = "user-table";
+
   constructor() {
     this.client = new DynamoDBClient({});
   }
 
   public async getUserInformation(alias: string): Promise<UserDto> {
     const params: GetCommandInput = {
-      TableName: "users",
-      Key: { alias },
+      TableName: this.TABLE_NAME,
+      Key: { alias: { S: alias } },
     };
     try {
       const data = await this.client.send(new GetItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
+      console.log("result : ", data);
       if (
         data.Item &&
         data.Item["firstName"].S &&
@@ -34,12 +35,12 @@ export class UserDAO implements IUserDAO {
           data.Item["lastName"].S,
           alias,
           data.Item["imageUrl"].S
-        );
+        ).dto;
       }
       return new User("", "", "", "");
     } catch (error) {
-      console.error("Error:", error);
-      throw error;
+      console.error("Error retrieving user: ", error);
+      return new User("", "", "", "");
     }
   }
 
@@ -47,17 +48,15 @@ export class UserDAO implements IUserDAO {
     firstName: string,
     lastName: string,
     alias: string,
-    imageUrl: string,
-    password: string
+    imageUrl: string
   ) {
     const params = {
-      TableName: "users",
+      TableName: this.TABLE_NAME,
       Item: {
         firstName: { S: firstName },
         lastName: { S: lastName },
         alias: { S: alias },
         imageUrl: { S: imageUrl },
-        password: { S: password },
       },
     };
     try {

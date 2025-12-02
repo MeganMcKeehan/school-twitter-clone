@@ -26,7 +26,7 @@ export class AuthtokenDAO implements IAuthtokenDAO {
       TableName: this.TABLE_NAME,
       Item: {
         token: { S: newAuthToken.token },
-        timestamp: { N: newAuthToken.timestamp.toString() },
+        timestamp: { S: newAuthToken.timestamp.toString() },
       },
     };
     try {
@@ -56,7 +56,7 @@ export class AuthtokenDAO implements IAuthtokenDAO {
       if (!data.Item) {
         return false;
       }
-      const timestamp = Number(data.Item["timestamp"].N);
+      const timestamp = Number(data.Item["timestamp"].S);
       if (Date.now() < timestamp + this.TIME_TILL_TOKEN_EXPIRATION_MS) {
         return false;
       }
@@ -82,7 +82,7 @@ export class AuthtokenDAO implements IAuthtokenDAO {
     };
     try {
       const data = await this.client.send(new DeleteItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
+      console.log("result : " + data);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -97,7 +97,7 @@ export class AuthtokenDAO implements IAuthtokenDAO {
     };
     try {
       const data = await this.client.send(new DeleteItemCommand(params));
-      console.log("result : " + JSON.stringify(data));
+      console.log("result : " + data);
     } catch (error) {
       console.error("Error:", error);
     }
