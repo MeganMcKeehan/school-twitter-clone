@@ -1,7 +1,7 @@
 import { DataPage, StatusDto } from "tweeter-shared";
 
 export interface IStatusDAO {
-  addStatus(alias: string, timestamp: string, post: string): Promise<void>;
+  addStatus(alias: string, post: string): Promise<void>;
   getStory(
     alias: string,
     lastItem: StatusDto | null,
