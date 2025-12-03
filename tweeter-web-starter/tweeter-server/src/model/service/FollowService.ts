@@ -20,7 +20,7 @@ export class FollowService extends Service {
     userAlias: string,
     pageSize: number,
     lastItem: UserDto | null
-  ): Promise<[string[], boolean]> {
+  ): Promise<[UserDto[], boolean]> {
     try {
       await this._authTokenDAO.isValidAuthToken(token);
       return this._followDAO.getFollowers(userAlias, lastItem?.alias, pageSize);
@@ -34,10 +34,11 @@ export class FollowService extends Service {
     userAlias: string,
     pageSize: number,
     lastItem: UserDto | null
-  ): Promise<[string[], boolean]> {
+  ): Promise<[UserDto[], boolean]> {
     try {
       await this._authTokenDAO.isValidAuthToken(token);
-      return this._followDAO.getFollowees(userAlias, lastItem?.alias, pageSize);
+      this._followDAO.getFollowees(userAlias, lastItem?.alias, pageSize);
+      return;
     } catch (error) {
       return [[], false];
     }

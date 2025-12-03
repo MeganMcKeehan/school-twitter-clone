@@ -1,7 +1,9 @@
 import { AuthtokenDAO } from "../../daos/AuthTokenDAO";
+import { FeedDAO } from "../../daos/FeedDAO";
 import { FollowDAO } from "../../daos/FollowDAO";
 import { ImageDAO } from "../../daos/ImageDAO";
 import { IAuthtokenDAO } from "../../daos/interfaces/IAuthTokenDAO";
+import { IFeedDAO } from "../../daos/interfaces/IFeedDao";
 import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { IImageDAO } from "../../daos/interfaces/IImageDAO";
 import { IPasswordDAO } from "../../daos/interfaces/IPasswordDAO";
@@ -19,6 +21,7 @@ export class DynamoDAOFactory extends DAOFactory {
   private _imageDAO: IImageDAO | undefined;
   private _statusDAO: IStatusDAO | undefined;
   private _passwordDAO: IPasswordDAO | undefined;
+  private _feedDAO: IFeedDAO | undefined;
 
   public getUserDAO(): IUserDAO {
     if (!this._userDAO) {
@@ -60,5 +63,12 @@ export class DynamoDAOFactory extends DAOFactory {
       this._passwordDAO = new PasswordDAO();
     }
     return this._passwordDAO;
+  }
+
+  public getFeedDAO(): IFeedDAO {
+    if (!this._feedDAO) {
+      this._feedDAO = new FeedDAO();
+    }
+    return this._feedDAO;
   }
 }
