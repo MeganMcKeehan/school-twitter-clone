@@ -30,7 +30,10 @@ export class FollowService extends Service {
         lastItem?.alias,
         pageSize
       );
-      const users = await this.getUserDTOs(followerAliases);
+      let users: UserDto[] = [];
+      if (followerAliases !== undefined) {
+        users = await this.getUserDTOs(followerAliases);
+      }
       return [users, hasMore];
     } catch (error) {
       return [[], false];
@@ -50,7 +53,11 @@ export class FollowService extends Service {
         lastItem?.alias,
         pageSize
       );
-      const users = await this.getUserDTOs(followeeAliases);
+      let users: UserDto[] = [];
+      if (followeeAliases !== undefined) {
+        users = await this.getUserDTOs(followeeAliases);
+      }
+
       return [users, hasMore];
     } catch (error) {
       return [[], false];
@@ -59,7 +66,8 @@ export class FollowService extends Service {
 
   private async getUserDTOs(aliases: string[]) {
     const users: UserDto[] = [];
-    for (const alias in aliases) {
+    for (const alias of aliases) {
+      console.log(alias);
       const foundUser = await this._userDAO.getUserInformation(alias);
       if (foundUser) {
         users.push(foundUser);

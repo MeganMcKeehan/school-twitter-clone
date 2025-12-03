@@ -1,7 +1,7 @@
 import { UserDto } from "tweeter-shared";
 
 export interface IUserDAO {
-  getUserInformation(alias: string): Promise<UserDto>;
+  getUserInformation(alias: string): Promise<UserDto | undefined>;
 
   addUser(
     firstName: string,

@@ -11,8 +11,8 @@ export class PasswordDAO implements IPasswordDAO {
 
   private TABLE_NAME = "password-table";
 
-  constructor() {
-    this.client = new DynamoDBClient({});
+  constructor(db: DynamoDBClient) {
+    this.client = db;
   }
   public async getPassword(alias: string): Promise<string> {
     const params: GetCommandInput = {

@@ -1,7 +1,7 @@
 import { DataPage, StatusDto } from "tweeter-shared";
 
 export interface IFeedDAO {
-  updateFeed(alias: string, status: StatusDto): Promise<void>;
+  updateFeed(alias: string, timestamp: string, post: string): Promise<void>;
   getFeed(
     alias: string,
     lastItem: StatusDto | null,

@@ -12,11 +12,11 @@ export class UserDAO implements IUserDAO {
 
   private TABLE_NAME = "user-table";
 
-  constructor() {
-    this.client = new DynamoDBClient({});
+  constructor(db: DynamoDBClient) {
+    this.client = db;
   }
 
-  public async getUserInformation(alias: string): Promise<UserDto> {
+  public async getUserInformation(alias: string): Promise<UserDto | undefined> {
     const params: GetCommandInput = {
       TableName: this.TABLE_NAME,
       Key: { alias: { S: alias } },
@@ -25,10 +25,10 @@ export class UserDAO implements IUserDAO {
       const data = await this.client.send(new GetItemCommand(params));
       console.log("result : ", data);
       if (
-        data.Item &&
-        data.Item["firstName"].S &&
-        data.Item["lastName"].S &&
-        data.Item["imageUrl"].S
+        !!data?.Item &&
+        !!data.Item["firstName"]?.S &&
+        !!data.Item["lastName"]?.S &&
+        !!data.Item["imageUrl"]?.S
       ) {
         return new User(
           data.Item["firstName"].S,
@@ -37,7 +37,6 @@ export class UserDAO implements IUserDAO {
           data.Item["imageUrl"].S
         ).dto;
       }
-      return new User("", "", "", "");
     } catch (error) {
       console.error("Error retrieving user: ", error);
       return new User("", "", "", "");

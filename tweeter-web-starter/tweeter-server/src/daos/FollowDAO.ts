@@ -15,19 +15,19 @@ export class FollowDAO implements IFollowDAO {
   private client: DynamoDBClient;
 
   private TABLE_NAME = "follow-table";
-  private PRIMARY_KEY = "follower_handle";
-  private SECONDARY_KEY = "followee_handle";
-
-  constructor() {
-    this.client = new DynamoDBClient({});
+  private FOLLOWER_ALIAS = "follower_handle";
+  private FOLLWEE_ALIAS = "followee_handle";
+  constructor(db: DynamoDBClient) {
+    this.client = db;
   }
+
   public async getFollowers(
     alias: string,
     lastItem: string | undefined = undefined,
     limit: number = 10
   ): Promise<[string[], boolean]> {
     const params = {
-      KeyConditionExpression: this.PRIMARY_KEY + " = :alias",
+      KeyConditionExpression: this.FOLLOWER_ALIAS + " = :alias",
       ExpressionAttributeValues: {
         ":alias": alias,
       },
@@ -37,14 +37,16 @@ export class FollowDAO implements IFollowDAO {
         lastItem === undefined
           ? undefined
           : {
-              ["alias"]: lastItem,
+              [this.FOLLOWER_ALIAS]: lastItem,
             },
     };
 
     const items: string[] = [];
     const data = await this.client.send(new QueryCommand(params));
     const hasMorePages = data.LastEvaluatedKey !== undefined;
-    data.Items?.forEach((item) => items.push(item["alias"]));
+    if (data.Items) {
+      data.Items?.forEach((item) => items.push(item[this.FOLLWEE_ALIAS]));
+    }
 
     return [items, hasMorePages];
   }
@@ -54,7 +56,7 @@ export class FollowDAO implements IFollowDAO {
     limit: number = 10
   ): Promise<[string[], boolean]> {
     const params = {
-      KeyConditionExpression: this.SECONDARY_KEY + " = :alias",
+      KeyConditionExpression: this.FOLLWEE_ALIAS + " = :alias",
       ExpressionAttributeValues: {
         ":alias": alias,
       },
@@ -62,17 +64,20 @@ export class FollowDAO implements IFollowDAO {
       IndexName: "follows-index",
       Limit: limit,
       ExclusiveStartKey:
-        lastItem === undefined
+        lastItem === undefined // this has a type error if undefined
           ? undefined
           : {
-              ["alias"]: lastItem,
+              [this.FOLLWEE_ALIAS]: lastItem,
             },
     };
 
     const items: string[] = [];
     const data = await this.client.send(new QueryCommand(params));
+    console.log(data);
     const hasMorePages = data.LastEvaluatedKey !== undefined;
-    data.Items?.forEach((item) => items.push(item["alias"]));
+    if (data.Items) {
+      data.Items?.forEach((item) => items.push(item[this.FOLLOWER_ALIAS]));
+    }
 
     return [items, hasMorePages];
   }
@@ -131,7 +136,7 @@ export class FollowDAO implements IFollowDAO {
 
   public async getFollowerCount(userAlias: string): Promise<number> {
     const params = {
-      KeyConditionExpression: this.SECONDARY_KEY + " = :alias",
+      KeyConditionExpression: this.FOLLWEE_ALIAS + " = :alias",
       ExpressionAttributeValues: {
         ":alias": userAlias,
       },
@@ -149,7 +154,7 @@ export class FollowDAO implements IFollowDAO {
 
   public async getFolloweeCount(userAlias: string): Promise<number> {
     const params = {
-      KeyConditionExpression: this.PRIMARY_KEY + " = :alias",
+      KeyConditionExpression: this.FOLLOWER_ALIAS + " = :alias",
       ExpressionAttributeValues: {
         ":alias": userAlias,
       },

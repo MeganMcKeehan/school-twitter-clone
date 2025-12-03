@@ -1,3 +1,4 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { AuthtokenDAO } from "../../daos/AuthTokenDAO";
 import { FeedDAO } from "../../daos/FeedDAO";
 import { FollowDAO } from "../../daos/FollowDAO";
@@ -23,23 +24,30 @@ export class DynamoDAOFactory extends DAOFactory {
   private _passwordDAO: IPasswordDAO | undefined;
   private _feedDAO: IFeedDAO | undefined;
 
+  private client: DynamoDBClient;
+
+  constructor() {
+    super();
+    this.client = new DynamoDBClient({});
+  }
+
   public getUserDAO(): IUserDAO {
     if (!this._userDAO) {
-      this._userDAO = new UserDAO();
+      this._userDAO = new UserDAO(this.client);
     }
     return this._userDAO;
   }
 
   public getFollowDAO(): IFollowDAO {
     if (!this._followDAO) {
-      this._followDAO = new FollowDAO();
+      this._followDAO = new FollowDAO(this.client);
     }
     return this._followDAO;
   }
 
   public getAuthTokenDAO(): IAuthtokenDAO {
     if (!this._authTokenDAO) {
-      this._authTokenDAO = new AuthtokenDAO();
+      this._authTokenDAO = new AuthtokenDAO(this.client);
     }
     return this._authTokenDAO;
   }
@@ -53,21 +61,21 @@ export class DynamoDAOFactory extends DAOFactory {
 
   public getStatusDAO(): IStatusDAO {
     if (!this._statusDAO) {
-      this._statusDAO = new StatusDAO();
+      this._statusDAO = new StatusDAO(this.client);
     }
     return this._statusDAO;
   }
 
   public getPasswordDAO(): IPasswordDAO {
     if (!this._passwordDAO) {
-      this._passwordDAO = new PasswordDAO();
+      this._passwordDAO = new PasswordDAO(this.client);
     }
     return this._passwordDAO;
   }
 
   public getFeedDAO(): IFeedDAO {
     if (!this._feedDAO) {
-      this._feedDAO = new FeedDAO();
+      this._feedDAO = new FeedDAO(this.client);
     }
     return this._feedDAO;
   }

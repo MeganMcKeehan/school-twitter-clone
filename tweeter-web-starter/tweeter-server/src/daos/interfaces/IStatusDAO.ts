@@ -6,5 +6,5 @@ export interface IStatusDAO {
     alias: string,
     lastItem: StatusDto | null,
     limit: number
-  ): Promise<DataPage<StatusDto>>;
+  ): Promise<[StatusDto[], boolean]>;
 }

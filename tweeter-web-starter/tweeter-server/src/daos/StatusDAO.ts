@@ -1,15 +1,9 @@
 import {
   DynamoDBClient,
   PutItemCommand,
-  PutItemCommandInput,
   PutItemInput,
 } from "@aws-sdk/client-dynamodb";
-import {
-  QueryCommand,
-  QueryCommandInput,
-  UpdateCommand,
-  UpdateCommandInput,
-} from "@aws-sdk/lib-dynamodb";
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { DataPage, Status, StatusDto } from "tweeter-shared";
 import { IStatusDAO } from "./interfaces/IStatusDAO";
 
@@ -17,10 +11,9 @@ export class StatusDAO implements IStatusDAO {
   private client: DynamoDBClient;
   private TABLE_NAME = "status-table";
   private USER_ALIAS: string = "user_alias";
-  private TIMESTAMP: string = "timestamp";
 
-  constructor() {
-    this.client = new DynamoDBClient({});
+  constructor(db: DynamoDBClient) {
+    this.client = db;
   }
 
   public async addStatus(alias: string, post: string): Promise<void> {
@@ -43,7 +36,7 @@ export class StatusDAO implements IStatusDAO {
     alias: string,
     lastItem: StatusDto | null = null,
     limit: number = 10
-  ): Promise<DataPage<StatusDto>> {
+  ): Promise<[StatusDto[], boolean]> {
     const params = {
       KeyConditionExpression: this.USER_ALIAS + " = :alias",
       ExpressionAttributeValues: {
@@ -57,50 +50,25 @@ export class StatusDAO implements IStatusDAO {
           : {
               ["post"]: lastItem.post,
               [this.USER_ALIAS]: lastItem.user,
-              [this.TIMESTAMP]: lastItem.timestamp.toString(),
             },
     };
 
     const items: StatusDto[] = [];
     const data = await this.client.send(new QueryCommand(params));
     const hasMorePages = data.LastEvaluatedKey !== undefined;
-    data.Items?.forEach((item) =>
-      items.push(
-        new Status(item["post"], item[this.USER_ALIAS], item[this.TIMESTAMP])
-          .dto
-      )
-    );
+    console.log("data: ", data);
+    if (data.Items) {
+      for (const item of data.Items) {
+        const post = item["post"];
 
-    return new DataPage<StatusDto>(items, hasMorePages);
-  }
+        if (post != null) {
+          const status = Status.fromJson(post);
+          items.push(status!.dto);
+        }
+      }
+    }
+    console.log("items: ", items);
 
-  public async getFeed(
-    lastItem: StatusDto | null = null,
-    limit: number = 10
-  ): Promise<DataPage<StatusDto>> {
-    const params: QueryCommandInput = {
-      TableName: this.TABLE_NAME,
-      Limit: limit,
-      ExclusiveStartKey:
-        lastItem === null
-          ? undefined
-          : {
-              ["post"]: lastItem.post,
-              [this.USER_ALIAS]: lastItem.user,
-              [this.TIMESTAMP]: lastItem.timestamp.toString(),
-            },
-    };
-
-    const items: StatusDto[] = [];
-    const data = await this.client.send(new QueryCommand(params));
-    const hasMorePages = data.LastEvaluatedKey !== undefined;
-    data.Items?.forEach((item) =>
-      items.push(
-        new Status(item["post"], item[this.USER_ALIAS], item[this.TIMESTAMP])
-          .dto
-      )
-    );
-
-    return new DataPage<StatusDto>(items, hasMorePages);
+    return [items, hasMorePages];
   }
 }

@@ -11,17 +11,22 @@ export class FeedDAO implements IFeedDAO {
   private client: DynamoDBClient;
   private TABLE_NAME = "feed-table";
   private USER_ALIAS: string = "user_alias";
-  private TIMESTAMP: string = "timestamp";
 
-  constructor() {
-    this.client = new DynamoDBClient({});
+  constructor(db: DynamoDBClient) {
+    this.client = db;
   }
 
-  public async updateFeed(alias: string, status: StatusDto): Promise<void> {
+  public async updateFeed(
+    alias: string,
+    timestamp: string,
+    post: string
+  ): Promise<void> {
+    console.log("updateFeed: " + alias + " " + timestamp + " " + post);
     const params: PutItemInput = {
       TableName: this.TABLE_NAME,
       Item: {
-        post: { S: Status.fromDto(status)!.toJson() },
+        post: { S: post },
+        timestamp: { S: timestamp },
         user_alias: { S: alias },
       },
     };
@@ -49,20 +54,24 @@ export class FeedDAO implements IFeedDAO {
         lastItem === null
           ? undefined
           : {
-              ["post"]: lastItem.post,
+              ["post"]: Status.fromDto(lastItem)?.toJson,
+              ["timestamp"]: Status.fromDto(lastItem)?.timestamp.toString(),
               [this.USER_ALIAS]: lastItem.user,
-              [this.TIMESTAMP]: lastItem.timestamp.toString(),
             },
     };
 
     const items: StatusDto[] = [];
     const data = await this.client.send(new QueryCommand(params));
     const hasMorePages = data.LastEvaluatedKey !== undefined;
-    data.Items?.forEach((item) => {
-      if (item) {
-        items.push(Status.fromJson(item["post"].S)!.dto);
+    if (data.Items) {
+      for (const item of data.Items) {
+        const post = item["post"].S;
+        if (post != null) {
+          const status = Status.fromJson(post);
+          items.push(status!.dto);
+        }
       }
-    });
+    }
 
     return new DataPage<StatusDto>(items, hasMorePages);
   }

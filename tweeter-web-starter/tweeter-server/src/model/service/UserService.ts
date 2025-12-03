@@ -32,6 +32,9 @@ export class UserService extends Service {
       const foundPassword = await this._passwordDAO.getPassword(alias);
       if (password === foundPassword) {
         const user = await this._userDAO.getUserInformation(alias);
+        if (user === undefined) {
+          throw new Error("user not found");
+        }
         const authToken = await this._authTokenDAO.generateAuthToken(alias);
         return [user, authToken];
       }
@@ -82,7 +85,7 @@ export class UserService extends Service {
     alias: string
   ): Promise<UserDto | null> {
     await this._authTokenDAO.isValidAuthToken(authToken);
-    return await this._userDAO.getUserInformation(alias);
+    return (await this._userDAO.getUserInformation(alias)) || null;
   }
 
   public async getFollowerCount(

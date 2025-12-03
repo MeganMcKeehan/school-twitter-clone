@@ -16,8 +16,8 @@ export class AuthtokenDAO implements IAuthtokenDAO {
   private TABLE_NAME = "authtoken-table";
   private TIME_TILL_TOKEN_EXPIRATION_MS = 24 * 60 * 60 * 1000;
 
-  constructor() {
-    this.client = new DynamoDBClient({});
+  constructor(db: DynamoDBClient) {
+    this.client = db;
   }
 
   public async generateAuthToken(alias: string): Promise<string> {

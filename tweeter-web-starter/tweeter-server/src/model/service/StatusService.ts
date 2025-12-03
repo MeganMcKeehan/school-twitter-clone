@@ -47,18 +47,13 @@ export class StatusService extends Service {
   ): Promise<[StatusDto[], boolean]> {
     try {
       await this._authTokenDAO.isValidAuthToken(authToken);
-      let thisLastItem;
-      if (lastItem === null) {
-        thisLastItem = undefined;
-      } else {
-        thisLastItem = lastItem;
-      }
-      const page = await this._statusDAO.getStory(
+      const [values, hasMore] = await this._statusDAO.getStory(
         userAlias,
-        thisLastItem!,
+        lastItem,
         pageSize
       );
-      return [page.values, page.hasMorePages];
+      console.log(values);
+      return [values, hasMore];
     } catch {
       return [[], false];
     }
@@ -79,23 +74,34 @@ export class StatusService extends Service {
 
     let hasMore = true;
     const followersAliases: string[] = [];
+    let lastUser = undefined;
     while (hasMore) {
       let moreUsersAliases;
+      console.log(hasMore);
       [moreUsersAliases, hasMore] = await this._followDAO.getFollowers(
         newStatus.user.alias,
-        undefined,
+        lastUser,
         10
       );
-      followersAliases.push(...moreUsersAliases);
+      console.log(moreUsersAliases);
+      if (moreUsersAliases.length > 0) {
+        followersAliases.push(...moreUsersAliases);
+        lastUser = moreUsersAliases.at(-1);
+        console.log(lastUser);
+      }
     }
 
-    for (const alias in followersAliases) {
-      this.updateFeed(alias, newStatus);
+    for (const alias of followersAliases) {
+      await this.updateFeed(alias, newStatus);
     }
   }
 
-  private updateFeed(alias: string, newStatus: StatusDto) {
-    this._feedDAO.updateFeed(alias, newStatus);
+  private async updateFeed(alias: string, newStatus: StatusDto) {
+    await this._feedDAO.updateFeed(
+      alias,
+      newStatus.timestamp.toString(),
+      Status.fromDto(newStatus)!.toJson()
+    );
   }
 
   private async getFakeData(
