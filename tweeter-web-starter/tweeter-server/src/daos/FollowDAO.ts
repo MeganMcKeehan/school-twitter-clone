@@ -86,8 +86,8 @@ export class FollowDAO implements IFollowDAO {
     const params = {
       TableName: this.TABLE_NAME,
       Item: {
-        followerAlias: { S: follower },
-        followeeAlias: { S: followee },
+        follower_handle: { S: follower },
+        followee_handle: { S: followee },
       },
     };
     try {
@@ -128,7 +128,7 @@ export class FollowDAO implements IFollowDAO {
 
     try {
       const data = await this.client.send(new GetItemCommand(params));
-      return data ? true : false;
+      return data.Item ? true : false;
     } catch {
       return false;
     }

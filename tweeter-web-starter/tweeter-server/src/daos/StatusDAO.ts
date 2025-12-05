@@ -16,12 +16,17 @@ export class StatusDAO implements IStatusDAO {
     this.client = db;
   }
 
-  public async addStatus(alias: string, post: string): Promise<void> {
+  public async addStatus(
+    alias: string,
+    post: string,
+    timestamp: string
+  ): Promise<void> {
     const params: PutItemInput = {
       TableName: this.TABLE_NAME,
       Item: {
         post: { S: post },
         user_alias: { S: alias },
+        timestamp: { S: timestamp },
       },
     };
     try {
@@ -37,6 +42,10 @@ export class StatusDAO implements IStatusDAO {
     lastItem: StatusDto | null = null,
     limit: number = 10
   ): Promise<[StatusDto[], boolean]> {
+    const lastItemTimestamp =
+      lastItem === null ? "0" : lastItem.timestamp.toString();
+    const lastItemUser = lastItem === null ? "" : lastItem.user.alias;
+
     const params = {
       KeyConditionExpression: this.USER_ALIAS + " = :alias",
       ExpressionAttributeValues: {
@@ -48,14 +57,15 @@ export class StatusDAO implements IStatusDAO {
         lastItem === null
           ? undefined
           : {
-              ["post"]: lastItem.post,
-              [this.USER_ALIAS]: lastItem.user,
+              ["timestamp"]: lastItemTimestamp,
+              [this.USER_ALIAS]: lastItemUser,
             },
     };
 
     const items: StatusDto[] = [];
     const data = await this.client.send(new QueryCommand(params));
     const hasMorePages = data.LastEvaluatedKey !== undefined;
+
     console.log("data: ", data);
     if (data.Items) {
       for (const item of data.Items) {

@@ -40,10 +40,12 @@ export class ClientCommunicator {
         return response;
       } else {
         const error = await resp.json();
+        console.log("else");
         throw new Error(error.errorMessage);
       }
     } catch (error) {
       console.error(error);
+      console.log("client communicator");
       throw new Error(
         `Client communicator ${params.method} failed:\n${
           (error as Error).message

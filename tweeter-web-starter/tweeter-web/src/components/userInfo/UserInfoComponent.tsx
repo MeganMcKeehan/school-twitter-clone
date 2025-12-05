@@ -69,7 +69,11 @@ const UserInfo = () => {
       `Following ${displayedUser!.name}...`,
       3000
     );
-    await presenter.followDisplayedUser(authToken!, displayedUser!);
+    await presenter.followDisplayedUser(
+      authToken!,
+      displayedUser!,
+      currentUser!
+    );
     setIsLoading(false);
   };
 
@@ -77,7 +81,11 @@ const UserInfo = () => {
     event.preventDefault();
     setIsLoading(true);
     displayInfoMessage(`Unfollowing ${displayedUser!.name}...`, 3000);
-    await presenter.unfollowDisplayedUser(authToken!, displayedUser!);
+    await presenter.unfollowDisplayedUser(
+      authToken!,
+      displayedUser!,
+      currentUser!
+    );
     setIsLoading(false);
   };
 

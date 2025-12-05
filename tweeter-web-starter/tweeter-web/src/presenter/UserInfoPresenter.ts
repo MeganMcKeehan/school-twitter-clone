@@ -55,12 +55,14 @@ export class UserInfoPresenter extends Presenter<UserInfoVeiw> {
 
   public async followDisplayedUser(
     authToken: AuthToken,
-    displayedUser: User
+    displayedUser: User,
+    currentUser: User
   ): Promise<void> {
     this.doFailureReportingOperation("follow user", async () => {
       const [followerCount, followeeCount] = await this.userService.follow(
         authToken!,
-        displayedUser!
+        displayedUser!,
+        currentUser!
       );
 
       this.view.setIsFollower(true);
@@ -71,12 +73,14 @@ export class UserInfoPresenter extends Presenter<UserInfoVeiw> {
 
   public async unfollowDisplayedUser(
     authToken: AuthToken,
-    displayedUser: User
+    displayedUser: User,
+    currentUser: User
   ): Promise<void> {
     this.doFailureReportingOperation("unfollow user", async () => {
       const [followerCount, followeeCount] = await this.userService.unfollow(
         authToken!,
-        displayedUser!
+        displayedUser!,
+        currentUser
       );
 
       this.view.setIsFollower(false);

@@ -1,6 +1,7 @@
 import { PagedUserItemRequest, PagedUserItemResponse } from "tweeter-shared";
 import { FollowService } from "../../model/service/FollowService";
 import { DynamoDAOFactory } from "../../model/factories/dynamoFactory";
+import { AuthenticateService } from "../../model/service/AuthenticateService";
 
 export const handler = async (
   request: PagedUserItemRequest

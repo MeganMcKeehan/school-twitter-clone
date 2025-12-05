@@ -119,19 +119,22 @@ export class UserService extends Service {
       user: user.dto,
       selectedUser: selectedUser.dto,
     };
+    console.log(request);
 
     return await serverFacade.isFollower(request);
   }
 
   public async follow(
     authToken: AuthToken,
-    userToFollow: User
+    userToFollow: User,
+    currentUser: User
   ): Promise<[followerCount: number, followeeCount: number]> {
     const serverFacade = new ServerFacade();
 
-    const request: UserRequest = {
+    const request: IsFollowerRequest = {
       authToken: authToken.token,
-      user: userToFollow.dto,
+      selectedUser: userToFollow.dto,
+      user: currentUser.dto,
     };
 
     return await serverFacade.follow(request);
@@ -139,15 +142,17 @@ export class UserService extends Service {
 
   public async unfollow(
     authToken: AuthToken,
-    userToUnfollow: User
+    userToUnfollow: User,
+    currentUser: User
   ): Promise<[followerCount: number, followeeCount: number]> {
     const serverFacade = new ServerFacade();
 
-    const request: UserRequest = {
+    const request: IsFollowerRequest = {
       authToken: authToken.token,
-      user: userToUnfollow.dto,
+      selectedUser: userToUnfollow.dto,
+      user: currentUser.dto,
     };
 
-    return await serverFacade.follow(request);
+    return await serverFacade.unfollow(request);
   }
 }

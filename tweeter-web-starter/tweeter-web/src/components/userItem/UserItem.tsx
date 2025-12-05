@@ -11,6 +11,7 @@ const UserItem = (props: Props) => {
   const { navigateToUser } = UserNavigationHook();
 
   const user = props.value;
+  const alias = user.alias.includes("@") ? user.alias : "@" + user.alias;
 
   return (
     <div className="col bg-light mx-0 px-0">
@@ -31,10 +32,10 @@ const UserItem = (props: Props) => {
               </b>{" "}
               -{" "}
               <Link
-                to={user.alias}
+                to={alias}
                 onClick={(event) => navigateToUser(event, props.location)}
               >
-                {user.alias}
+                {alias}
               </Link>
             </h2>
           </div>

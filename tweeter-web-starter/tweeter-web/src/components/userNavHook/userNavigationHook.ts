@@ -3,6 +3,7 @@ import useUserInfo from "../userInfo/UserInfoHooks";
 import useUserInfoActions from "../userInfo/UserInfoListenerHook";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useNavigate } from "react-router-dom";
+import { UserService } from "../../services/UserService";
 
 interface UserNavigationListener {
   navigateToUser: (event: React.MouseEvent, location: string) => void;
@@ -23,17 +24,21 @@ export const UserNavigationHook = (): UserNavigationListener => {
     try {
       const alias = extractAlias(event.target.toString());
 
-      const sanitizedAlias = alias.split("/").at(1);
-      const toUser = sanitizedAlias
+      console.log(alias);
+
+      const sanitizedAlias = alias.split("@").at(1);
+      console.log(sanitizedAlias);
+      const toUser = !!sanitizedAlias
         ? await getUser(authToken!, sanitizedAlias)
         : await getUser(authToken!, alias);
+      console.log(toUser);
 
       const sanitizedLocation = location.split("/").at(0);
 
       if (toUser) {
         if (!toUser.equals(displayedUser!)) {
           setDisplayedUser(toUser);
-          navigate(`${sanitizedLocation}/${toUser.alias}`);
+          navigate(`${sanitizedLocation}/@${toUser.alias}`);
         }
       }
     } catch (error) {
@@ -50,8 +55,8 @@ export const UserNavigationHook = (): UserNavigationListener => {
     authToken: AuthToken,
     alias: string
   ): Promise<User | null> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.findUserByAlias(alias);
+    const userService = new UserService();
+    return await userService.getUser(authToken, alias);
   };
 
   return { navigateToUser: navigateToUser };

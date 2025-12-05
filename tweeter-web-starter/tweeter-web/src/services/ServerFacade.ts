@@ -45,7 +45,7 @@ export class ServerFacade {
     // Handle errors
     if (response.success) {
       if (items == null) {
-        throw new Error(`No followees found`);
+        return [[], false];
       } else {
         return [items, response.hasMore];
       }
@@ -72,7 +72,7 @@ export class ServerFacade {
     // Handle errors
     if (response.success) {
       if (items == null) {
-        throw new Error(`No followers found`);
+        return [[], false];
       } else {
         return [items, response.hasMore];
       }
@@ -97,7 +97,7 @@ export class ServerFacade {
     // Handle errors
     if (response.success) {
       if (count == null) {
-        throw new Error(`No followees found`);
+        return 0;
       } else {
         return count;
       }
@@ -122,7 +122,7 @@ export class ServerFacade {
     // Handle errors
     if (response.success) {
       if (count == null) {
-        throw new Error(`No followers found`);
+        return 0;
       } else {
         return count;
       }
@@ -192,6 +192,8 @@ export class ServerFacade {
       if (items == null) {
         throw new Error(`No story items found`);
       } else {
+        console.log(response);
+        console.log(response.hasMore);
         return [items, response.hasMore];
       }
     } else {
@@ -200,9 +202,9 @@ export class ServerFacade {
     }
   }
 
-  public async follow(request: UserRequest): Promise<[number, number]> {
+  public async follow(request: IsFollowerRequest): Promise<[number, number]> {
     const response = await this.clientCommunicator.doPost<
-      UserRequest,
+      IsFollowerRequest,
       FollowCountResponse
     >(request, "/user/follow");
 
@@ -215,14 +217,15 @@ export class ServerFacade {
     }
   }
 
-  public async unfollow(request: UserRequest): Promise<void> {
+  public async unfollow(request: IsFollowerRequest): Promise<[number, number]> {
     const response = await this.clientCommunicator.doPost<
-      UserRequest,
-      TweeterResponse
+      IsFollowerRequest,
+      FollowCountResponse
     >(request, "/user/unfollow");
 
     // Handle errors
     if (response.success) {
+      return [response.followerCount ?? 0, response.followeeCount ?? 0];
     } else {
       console.error(response);
       throw new Error(response.message!);
@@ -233,12 +236,14 @@ export class ServerFacade {
     const response = await this.clientCommunicator.doPost<
       IsFollowerRequest,
       IsFollowerResponse
-    >(request, "/follower/isfollower");
+    >(request, "/follower/isFollower");
 
     // Handle errors
     if (response.success) {
+      console.log("hellow word", response);
       return response.isFollower;
     } else {
+      console.log("teseting server facade");
       console.error(response);
       throw new Error(response.message!);
     }

@@ -5,6 +5,7 @@ import { IStatusDAO } from "../../daos/interfaces/IStatusDAO";
 import { DAOFactory } from "../factories/DaoFactory";
 import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { IFeedDAO } from "../../daos/interfaces/IFeedDao";
+import { AuthenticateService } from "./AuthenticateService";
 
 export class StatusService extends Service {
   private _authTokenDAO: IAuthtokenDAO;
@@ -67,9 +68,11 @@ export class StatusService extends Service {
     if (!newStatus) {
       throw new Error("missing status");
     }
+    const status = Status.fromDto(newStatus);
     this._statusDAO.addStatus(
       newStatus.user.alias,
-      Status.fromDto(newStatus)!.toJson()
+      status!.toJson(),
+      status!.timestamp.toString()
     );
 
     let hasMore = true;

@@ -1,6 +1,7 @@
 import { IsFollowerRequest, TweeterResponse } from "tweeter-shared";
 import { UserService } from "../../model/service/UserService";
 import { DynamoDAOFactory } from "../../model/factories/dynamoFactory";
+import { AuthenticateService } from "../../model/service/AuthenticateService";
 
 export const handler = async (
   request: IsFollowerRequest

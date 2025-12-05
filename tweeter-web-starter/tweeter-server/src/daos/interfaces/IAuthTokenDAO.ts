@@ -8,4 +8,6 @@ export interface IAuthtokenDAO {
   deleteAuthToken(authToken: AuthToken | string): Promise<void>;
 
   removeExpiredTokens(): Promise<void>;
+
+  updateAuthToken(authToken: AuthToken | string): Promise<void>;
 }

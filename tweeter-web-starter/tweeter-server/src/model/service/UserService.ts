@@ -1,4 +1,3 @@
-import { Buffer } from "buffer";
 import { User, UserDto } from "tweeter-shared";
 import { Service } from "./Service";
 import { IAuthtokenDAO } from "../../daos/interfaces/IAuthTokenDAO";
@@ -7,6 +6,7 @@ import { IImageDAO } from "../../daos/interfaces/IImageDAO";
 import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { DAOFactory } from "../factories/DaoFactory";
 import { IPasswordDAO } from "../../daos/interfaces/IPasswordDAO";
+import bcrypt from "bcryptjs";
 
 export class UserService extends Service {
   private _userDAO: IUserDAO;
@@ -30,7 +30,7 @@ export class UserService extends Service {
   ): Promise<[UserDto, string]> {
     try {
       const foundPassword = await this._passwordDAO.getPassword(alias);
-      if (password === foundPassword) {
+      if (bcrypt.hashSync(password, foundPassword)) {
         const user = await this._userDAO.getUserInformation(alias);
         if (user === undefined) {
           throw new Error("user not found");
@@ -58,16 +58,13 @@ export class UserService extends Service {
       throw new Error("alias taken");
     }
 
-    const imageStringBase64: string =
-      Buffer.from(userImageBytes).toString("base64");
-
     const imageUrl = await this._imageDao.putImage(
       alias + "." + imageFileExtension,
-      imageStringBase64
+      userImageBytes
     );
 
     this._userDAO.addUser(firstName, lastName, alias, imageUrl);
-    this._passwordDAO.addPassword(alias, password);
+    this._passwordDAO.addPassword(alias, this.saltPassword(password));
 
     const token = await this._authTokenDAO.generateAuthToken(alias);
 
@@ -118,7 +115,14 @@ export class UserService extends Service {
     userToFollow: UserDto,
     user: UserDto
   ): Promise<[followerCount: number, followeeCount: number]> {
-    this._followDAO.addFollow(user.alias, userToFollow.alias);
+    const isAlreadyFollower = await this._followDAO.isFollower(
+      user.alias,
+      userToFollow.alias
+    );
+    if (isAlreadyFollower) {
+      throw new Error("is already Following");
+    }
+    await this._followDAO.addFollow(user.alias, userToFollow.alias);
 
     const followerCount = await this.getFollowerCount(authToken, userToFollow);
     const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
@@ -143,5 +147,11 @@ export class UserService extends Service {
     );
 
     return [followerCount, followeeCount];
+  }
+
+  private saltPassword(password: string): string {
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+    return hash;
   }
 }

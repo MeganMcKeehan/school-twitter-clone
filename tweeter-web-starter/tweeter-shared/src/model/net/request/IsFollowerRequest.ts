@@ -3,4 +3,5 @@ import { UserRequest } from "./UserRequest";
 
 export interface IsFollowerRequest extends UserRequest {
   readonly selectedUser: UserDto;
+  readonly user: UserDto;
 }

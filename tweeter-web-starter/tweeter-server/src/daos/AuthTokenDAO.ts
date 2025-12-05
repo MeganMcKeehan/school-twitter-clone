@@ -58,9 +58,9 @@ export class AuthtokenDAO implements IAuthtokenDAO {
       }
       const timestamp = Number(data.Item["timestamp"].S);
       if (Date.now() < timestamp + this.TIME_TILL_TOKEN_EXPIRATION_MS) {
-        return false;
+        return true;
       }
-      return true;
+      return false;
     } catch (error) {
       console.error("Error:", error);
       return false;
@@ -100,6 +100,29 @@ export class AuthtokenDAO implements IAuthtokenDAO {
       console.log("result : " + data);
     } catch (error) {
       console.error("Error:", error);
+    }
+  }
+
+  public async updateAuthToken(authToken: AuthToken | string): Promise<void> {
+    let token: string;
+    if (authToken instanceof AuthToken) {
+      token = authToken.token;
+    } else {
+      token = authToken;
+    }
+    const timestamp = Date.now();
+    const params: PutItemCommandInput = {
+      TableName: this.TABLE_NAME,
+      Item: {
+        token: { S: token },
+        timestamp: { S: timestamp.toString() },
+      },
+    };
+    try {
+      const data = await this.client.send(new PutItemCommand(params));
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
     }
   }
 }
