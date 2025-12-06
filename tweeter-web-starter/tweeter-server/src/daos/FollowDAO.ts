@@ -134,38 +134,38 @@ export class FollowDAO implements IFollowDAO {
     }
   }
 
-  public async getFollowerCount(userAlias: string): Promise<number> {
-    const params = {
-      KeyConditionExpression: this.FOLLWEE_ALIAS + " = :alias",
-      ExpressionAttributeValues: {
-        ":alias": userAlias,
-      },
-      TableName: this.TABLE_NAME,
-      IndexName: "follows-index",
-      Select: Select.COUNT,
-    };
-    try {
-      const data = await this.client.send(new QueryCommand(params));
-      return data.Count || 0;
-    } catch {
-      return 0;
-    }
-  }
+  // public async getFollowerCount(userAlias: string): Promise<number> {
+  //   const params = {
+  //     KeyConditionExpression: this.FOLLWEE_ALIAS + " = :alias",
+  //     ExpressionAttributeValues: {
+  //       ":alias": userAlias,
+  //     },
+  //     TableName: this.TABLE_NAME,
+  //     IndexName: "follows-index",
+  //     Select: Select.COUNT,
+  //   };
+  //   try {
+  //     const data = await this.client.send(new QueryCommand(params));
+  //     return data.Count || 0;
+  //   } catch {
+  //     return 0;
+  //   }
+  // }
 
-  public async getFolloweeCount(userAlias: string): Promise<number> {
-    const params = {
-      KeyConditionExpression: this.FOLLOWER_ALIAS + " = :alias",
-      ExpressionAttributeValues: {
-        ":alias": userAlias,
-      },
-      TableName: this.TABLE_NAME,
-      Select: Select.COUNT,
-    };
-    try {
-      const data = await this.client.send(new QueryCommand(params));
-      return data.Count || 0;
-    } catch {
-      return 0;
-    }
-  }
+  // public async getFolloweeCount(userAlias: string): Promise<number> {
+  //   const params = {
+  //     KeyConditionExpression: this.FOLLOWER_ALIAS + " = :alias",
+  //     ExpressionAttributeValues: {
+  //       ":alias": userAlias,
+  //     },
+  //     TableName: this.TABLE_NAME,
+  //     Select: Select.COUNT,
+  //   };
+  //   try {
+  //     const data = await this.client.send(new QueryCommand(params));
+  //     return data.Count || 0;
+  //   } catch {
+  //     return 0;
+  //   }
+  // }
 }

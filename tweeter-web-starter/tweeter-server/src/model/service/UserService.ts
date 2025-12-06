@@ -7,6 +7,7 @@ import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { DAOFactory } from "../factories/DaoFactory";
 import { IPasswordDAO } from "../../daos/interfaces/IPasswordDAO";
 import bcrypt from "bcryptjs";
+import { IFollowCountDAO } from "../../daos/interfaces/IFollowCountDAO";
 
 export class UserService extends Service {
   private _userDAO: IUserDAO;
@@ -14,6 +15,7 @@ export class UserService extends Service {
   private _imageDao: IImageDAO;
   private _followDAO: IFollowDAO;
   private _passwordDAO: IPasswordDAO;
+  private _followCountDAO: IFollowCountDAO;
 
   constructor(daoFactory: DAOFactory) {
     super();
@@ -22,6 +24,7 @@ export class UserService extends Service {
     this._imageDao = daoFactory.getImageDAO();
     this._followDAO = daoFactory.getFollowDAO();
     this._passwordDAO = daoFactory.getPasswordDAO();
+    this._followCountDAO = daoFactory.getFollowCountDAO();
   }
 
   public async login(
@@ -65,6 +68,7 @@ export class UserService extends Service {
 
     this._userDAO.addUser(firstName, lastName, alias, imageUrl);
     this._passwordDAO.addPassword(alias, this.saltPassword(password));
+    this._followCountDAO.setFollowCounts(alias, 0, 0);
 
     const token = await this._authTokenDAO.generateAuthToken(alias);
 
@@ -90,7 +94,7 @@ export class UserService extends Service {
     user: UserDto
   ): Promise<number> {
     await this._authTokenDAO.isValidAuthToken(authToken);
-    return await this._followDAO.getFollowerCount(user.alias);
+    return await this._followCountDAO.getFollowerCount(user.alias);
   }
 
   public async getFolloweeCount(
@@ -98,7 +102,7 @@ export class UserService extends Service {
     user: UserDto
   ): Promise<number> {
     await this._authTokenDAO.isValidAuthToken(authToken);
-    return await this._followDAO.getFolloweeCount(user.alias);
+    return await this._followCountDAO.getFolloweeCount(user.alias);
   }
 
   public async getIsFollowerStatus(
@@ -115,6 +119,7 @@ export class UserService extends Service {
     userToFollow: UserDto,
     user: UserDto
   ): Promise<[followerCount: number, followeeCount: number]> {
+    await this._authTokenDAO.isValidAuthToken(authToken);
     const isAlreadyFollower = await this._followDAO.isFollower(
       user.alias,
       userToFollow.alias
@@ -124,10 +129,7 @@ export class UserService extends Service {
     }
     await this._followDAO.addFollow(user.alias, userToFollow.alias);
 
-    const followerCount = await this.getFollowerCount(authToken, userToFollow);
-    const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
-
-    return [followerCount, followeeCount];
+    return await this._followCountDAO.getFollowCounts(userToFollow.alias);
   }
 
   public async unfollow(
@@ -135,18 +137,12 @@ export class UserService extends Service {
     userToUnfollow: UserDto,
     user: UserDto
   ): Promise<[followerCount: number, followeeCount: number]> {
+    await this._authTokenDAO.isValidAuthToken(authToken);
     this._followDAO.deleteFollow(user.alias, userToUnfollow.alias);
+    await this._followCountDAO.decrementFollowerCount(user.alias);
+    await this._followCountDAO.decrementFolloweeCount(userToUnfollow.alias);
 
-    const followerCount = await this.getFollowerCount(
-      authToken,
-      userToUnfollow
-    );
-    const followeeCount = await this.getFolloweeCount(
-      authToken,
-      userToUnfollow
-    );
-
-    return [followerCount, followeeCount];
+    return this._followCountDAO.getFollowCounts(userToUnfollow.alias);
   }
 
   private saltPassword(password: string): string {

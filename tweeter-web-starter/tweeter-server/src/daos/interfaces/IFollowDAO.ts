@@ -12,6 +12,4 @@ export interface IFollowDAO {
   addFollow(follower: string, followee: string): Promise<void>;
   deleteFollow(follower: string, followee: string): Promise<void>;
   isFollower(user: string, selectedUser: string): Promise<boolean>;
-  getFollowerCount(userAlias: string): Promise<number>;
-  getFolloweeCount(userAlias: string): Promise<number>;
 }

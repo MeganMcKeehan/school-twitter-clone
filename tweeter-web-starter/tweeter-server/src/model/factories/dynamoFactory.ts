@@ -14,6 +14,8 @@ import { PasswordDAO } from "../../daos/PasswordDAO";
 import { StatusDAO } from "../../daos/StatusDAO";
 import { UserDAO } from "../../daos/UserDAO";
 import { DAOFactory } from "./DaoFactory";
+import { IFollowCountDAO } from "../../daos/interfaces/IFollowCountDAO";
+import { FollowCountDAO } from "../../daos/FollowCountDAO";
 
 export class DynamoDAOFactory extends DAOFactory {
   private _userDAO: IUserDAO | undefined;
@@ -23,6 +25,7 @@ export class DynamoDAOFactory extends DAOFactory {
   private _statusDAO: IStatusDAO | undefined;
   private _passwordDAO: IPasswordDAO | undefined;
   private _feedDAO: IFeedDAO | undefined;
+  private _followCountDAO: IFollowCountDAO | undefined;
 
   private client: DynamoDBClient;
 
@@ -78,5 +81,12 @@ export class DynamoDAOFactory extends DAOFactory {
       this._feedDAO = new FeedDAO(this.client);
     }
     return this._feedDAO;
+  }
+
+  public getFollowCountDAO(): IFollowCountDAO {
+    if (!this._followCountDAO) {
+      this._followCountDAO = new FollowCountDAO(this.client);
+    }
+    return this._followCountDAO;
   }
 }
