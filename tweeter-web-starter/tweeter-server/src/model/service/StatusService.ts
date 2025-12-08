@@ -6,12 +6,14 @@ import { DAOFactory } from "../factories/DaoFactory";
 import { IFollowDAO } from "../../daos/interfaces/IFollowDAO";
 import { IFeedDAO } from "../../daos/interfaces/IFeedDao";
 import { AuthenticateService } from "./AuthenticateService";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 export class StatusService extends Service {
   private _authTokenDAO: IAuthtokenDAO;
   private _statusDAO: IStatusDAO;
   private _followDAO: IFollowDAO;
   private _feedDAO: IFeedDAO;
+  private sqsClient: SQSClient;
 
   constructor(daoFactory: DAOFactory) {
     super();
@@ -19,6 +21,7 @@ export class StatusService extends Service {
     this._statusDAO = daoFactory.getStatusDAO();
     this._followDAO = daoFactory.getFollowDAO();
     this._feedDAO = daoFactory.getFeedDAO();
+    this.sqsClient = new SQSClient();
   }
 
   public async loadMoreFeedItems(
@@ -75,6 +78,10 @@ export class StatusService extends Service {
       status!.timestamp.toString()
     );
 
+    this.sendPostSQSMessage(newStatus.user.alias, newStatus);
+  }
+
+  public async postUpdateFeedMessages(userAlias: string, newStatus: StatusDto) {
     let hasMore = true;
     const followersAliases: string[] = [];
     let lastUser = undefined;
@@ -88,23 +95,58 @@ export class StatusService extends Service {
       );
       console.log(moreUsersAliases);
       if (moreUsersAliases.length > 0) {
+        for (const userAlias of moreUsersAliases) {
+          this.sendUpdateFeedSQSMessage(userAlias, newStatus);
+        }
         followersAliases.push(...moreUsersAliases);
         lastUser = moreUsersAliases.at(-1);
         console.log(lastUser);
       }
     }
-
-    for (const alias of followersAliases) {
-      await this.updateFeed(alias, newStatus);
-    }
   }
 
-  private async updateFeed(alias: string, newStatus: StatusDto) {
+  public async updateFeed(alias: string, newStatus: StatusDto) {
     await this._feedDAO.updateFeed(
       alias,
       newStatus.timestamp.toString(),
       Status.fromDto(newStatus)!.toJson()
     );
+  }
+
+  private async sendPostSQSMessage(userAlias: string, statusDto: StatusDto) {
+    const sqs_url =
+      "https://sqs.us-east-1.amazonaws.com/337909758344/sqsExersize";
+
+    const messageBody = JSON.stringify({
+      postingUserAlias: userAlias,
+      statusDto: statusDto,
+    });
+
+    await this.sendGenericSQSMessage(sqs_url, messageBody);
+  }
+
+  private async sendUpdateFeedSQSMessage(
+    userAlias: String,
+    statusDto: StatusDto
+  ) {
+    const sqs_url =
+      "https://sqs.us-east-1.amazonaws.com/337909758344/sqsExersize";
+
+    const messageBody = JSON.stringify({
+      userAlias: userAlias,
+      statusDto: statusDto,
+    });
+
+    await this.sendGenericSQSMessage(sqs_url, messageBody);
+  }
+
+  private async sendGenericSQSMessage(queueUrl: string, messageBody: string) {
+    const params = {
+      DelaySeconds: 10,
+      MessageBody: messageBody,
+      QueueUrl: queueUrl,
+    };
+    const data = await this.sqsClient.send(new SendMessageCommand(params));
   }
 
   private async getFakeData(
