@@ -32,12 +32,12 @@ export class StatusService extends Service {
   ): Promise<[StatusDto[], boolean]> {
     try {
       await this._authTokenDAO.isValidAuthToken(authToken);
-      const dataPage = await this._feedDAO.getFeed(
+      const [values, hasMore] = await this._feedDAO.getFeed(
         userAlias,
         lastItem,
         pageSize
       );
-      return [dataPage.values, dataPage.hasMorePages];
+      return [values, hasMore];
     } catch (error) {
       return [[], false];
     }
@@ -72,13 +72,13 @@ export class StatusService extends Service {
       throw new Error("missing status");
     }
     const status = Status.fromDto(newStatus);
-    this._statusDAO.addStatus(
+    await this._statusDAO.addStatus(
       newStatus.user.alias,
       status!.toJson(),
       status!.timestamp.toString()
     );
 
-    this.sendPostSQSMessage(newStatus.user.alias, newStatus);
+    await this.sendPostSQSMessage(newStatus.user.alias, newStatus);
   }
 
   public async postUpdateFeedMessages(userAlias: string, newStatus: StatusDto) {
@@ -96,7 +96,7 @@ export class StatusService extends Service {
       console.log(moreUsersAliases);
       if (moreUsersAliases.length > 0) {
         for (const userAlias of moreUsersAliases) {
-          this.sendUpdateFeedSQSMessage(userAlias, newStatus);
+          await this.sendUpdateFeedSQSMessage(userAlias, newStatus);
         }
         followersAliases.push(...moreUsersAliases);
         lastUser = moreUsersAliases.at(-1);
@@ -146,7 +146,7 @@ export class StatusService extends Service {
       MessageBody: messageBody,
       QueueUrl: queueUrl,
     };
-    const data = await this.sqsClient.send(new SendMessageCommand(params));
+    await this.sqsClient.send(new SendMessageCommand(params));
   }
 
   private async getFakeData(

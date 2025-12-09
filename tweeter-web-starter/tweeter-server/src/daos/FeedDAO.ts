@@ -42,8 +42,12 @@ export class FeedDAO implements IFeedDAO {
     alias: string,
     lastItem: StatusDto | null = null,
     limit: number = 10
-  ): Promise<DataPage<StatusDto>> {
-    const params: QueryCommandInput = {
+  ): Promise<[StatusDto[], boolean]> {
+    const lastItemTimestamp =
+      lastItem === null ? "0" : lastItem.timestamp.toString();
+    const lastItemUser = lastItem === null ? "" : lastItem.user.alias;
+
+    const params = {
       KeyConditionExpression: this.USER_ALIAS + " = :alias",
       ExpressionAttributeValues: {
         ":alias": alias,
@@ -54,25 +58,28 @@ export class FeedDAO implements IFeedDAO {
         lastItem === null
           ? undefined
           : {
-              ["post"]: Status.fromDto(lastItem)?.toJson,
-              ["timestamp"]: Status.fromDto(lastItem)?.timestamp.toString(),
-              [this.USER_ALIAS]: lastItem.user,
+              ["timestamp"]: lastItemTimestamp,
+              [this.USER_ALIAS]: lastItemUser,
             },
     };
 
     const items: StatusDto[] = [];
     const data = await this.client.send(new QueryCommand(params));
     const hasMorePages = data.LastEvaluatedKey !== undefined;
+
+    console.log("data: ", data);
     if (data.Items) {
       for (const item of data.Items) {
-        const post = item["post"].S;
+        const post = item["post"];
+
         if (post != null) {
           const status = Status.fromJson(post);
           items.push(status!.dto);
         }
       }
     }
+    console.log("items: ", items);
 
-    return new DataPage<StatusDto>(items, hasMorePages);
+    return [items, hasMorePages];
   }
 }

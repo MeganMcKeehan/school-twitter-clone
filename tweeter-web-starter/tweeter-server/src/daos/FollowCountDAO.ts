@@ -1,15 +1,12 @@
 import {
   DynamoDBClient,
+  GetItemCommand,
   GetItemCommandInput,
+  GetItemCommandOutput,
   PutItemCommand,
   PutItemCommandInput,
 } from "@aws-sdk/client-dynamodb";
-import {
-  GetCommand,
-  GetCommandOutput,
-  UpdateCommand,
-  UpdateCommandInput,
-} from "@aws-sdk/lib-dynamodb";
+import { UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
 
 export class FollowCountDAO {
   private client: DynamoDBClient;
@@ -92,12 +89,12 @@ export class FollowCountDAO {
 
   private async getFollowCountsGeneric(
     userAlias: string
-  ): Promise<GetCommandOutput> {
+  ): Promise<GetItemCommandOutput> {
     const params: GetItemCommandInput = {
       Key: { user_alias: { S: userAlias } },
       TableName: this.TABLE_NAME,
     };
-    return await this.client.send(new GetCommand(params));
+    return await this.client.send(new GetItemCommand(params));
   }
 
   private async genericIncrement(

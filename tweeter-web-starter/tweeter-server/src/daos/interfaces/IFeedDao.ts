@@ -6,5 +6,5 @@ export interface IFeedDAO {
     alias: string,
     lastItem: StatusDto | null,
     limit: number
-  ): Promise<DataPage<StatusDto>>;
+  ): Promise<[StatusDto[], boolean]>;
 }

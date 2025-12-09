@@ -21,3 +21,5 @@ to update layers
 4. update the version number in `.server`
 
 5. run `./updateLayers.sh`
+
+for batch uploads run this in console `npx ts-node src/batch-upload/BatchLoadScripts.ts`

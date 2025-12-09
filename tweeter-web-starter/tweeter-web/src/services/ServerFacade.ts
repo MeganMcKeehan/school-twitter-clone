@@ -93,7 +93,7 @@ export class ServerFacade {
       response.success && response.followeeCount
         ? response.followeeCount
         : null;
-
+    console.log(count);
     // Handle errors
     if (response.success) {
       if (count == null) {
@@ -118,6 +118,7 @@ export class ServerFacade {
       response.success && response.followerCount
         ? response.followerCount
         : null;
+    console.log(count);
 
     // Handle errors
     if (response.success) {

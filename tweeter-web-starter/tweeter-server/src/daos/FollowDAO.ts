@@ -21,7 +21,7 @@ export class FollowDAO implements IFollowDAO {
     this.client = db;
   }
 
-  public async getFollowers(
+  public async getFollowees(
     alias: string,
     lastItem: string | undefined = undefined,
     limit: number = 10
@@ -50,7 +50,7 @@ export class FollowDAO implements IFollowDAO {
 
     return [items, hasMorePages];
   }
-  public async getFollowees(
+  public async getFollowers(
     alias: string,
     lastItem: string | undefined = undefined,
     limit: number = 10
