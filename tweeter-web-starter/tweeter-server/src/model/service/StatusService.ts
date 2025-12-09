@@ -115,7 +115,7 @@ export class StatusService extends Service {
 
   private async sendPostSQSMessage(userAlias: string, statusDto: StatusDto) {
     const sqs_url =
-      "https://sqs.us-east-1.amazonaws.com/337909758344/sqsExersize";
+      "https://sqs.us-east-1.amazonaws.com/337909758344/post-status-queue";
 
     const messageBody = JSON.stringify({
       postingUserAlias: userAlias,
@@ -130,7 +130,7 @@ export class StatusService extends Service {
     statusDto: StatusDto
   ) {
     const sqs_url =
-      "https://sqs.us-east-1.amazonaws.com/337909758344/sqsExersize";
+      "https://sqs.us-east-1.amazonaws.com/337909758344/update-feed-queue";
 
     const messageBody = JSON.stringify({
       userAlias: userAlias,

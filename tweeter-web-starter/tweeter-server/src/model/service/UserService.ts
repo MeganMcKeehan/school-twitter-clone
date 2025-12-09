@@ -128,6 +128,8 @@ export class UserService extends Service {
       throw new Error("is already Following");
     }
     await this._followDAO.addFollow(user.alias, userToFollow.alias);
+    await this._followCountDAO.incrementFolloweeCount(userToFollow.alias);
+    await this._followCountDAO.incrementFollowerCount(user.alias);
 
     return await this._followCountDAO.getFollowCounts(userToFollow.alias);
   }

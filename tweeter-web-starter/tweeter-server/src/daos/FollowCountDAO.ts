@@ -107,7 +107,7 @@ export class FollowCountDAO {
   ) {
     const params: UpdateCommandInput = {
       TableName: this.TABLE_NAME,
-      Key: { user_alias: { S: userAlias } },
+      Key: { ["user_alias"]: userAlias },
       ExpressionAttributeValues: { ":inc": incrementAmount },
       UpdateExpression:
         "SET " +
